@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-page="home">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MDR Breeding</title>
+    <link rel="stylesheet" href="static/style.css" />
+    <script type="module" src="static/webapp.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand-row">
+          <h1 class="brand">MDR Breeding</h1>
+          <nav class="main-nav">
+            <a href="index.html">Home</a>
+            <a href="add.html">Add Horse</a>
+            <a href="view.html">View Horse</a>
+            <a href="bestmates.html">Best Mates</a>
+          </nav>
+        </div>
+        <div class="header-actions">
+          <button id="downloadButton" type="button" class="button">Download CSV</button>
+          <button id="resetButton" type="button" class="button secondary">Reset session</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container page-stack">
+      <div id="flash" class="flash hidden"></div>
+
+      <section class="panel hero-panel">
+        <div class="page-head">
+          <div>
+            <h1>Private CSV breeding helper</h1>
+            <p class="muted">Upload your horses.csv file, browse the horses across separate pages, then download the updated CSV when you are done.</p>
+          </div>
+        </div>
+
+        <form id="importForm" class="import-form">
+          <input id="csvFile" type="file" accept=".csv,text/csv" required>
+          <button type="submit">Upload CSV</button>
+        </form>
+      </section>
+
+      <section class="panel" id="summaryPanel">
+        <h3>Summary</h3>
+        <p class="muted" id="summaryText">No file loaded yet.</p>
+        <div class="summary-grid">
+          <div><span class="summary-label">Horses</span><strong id="horseCount">0</strong></div>
+          <div><span class="summary-label">Session storage</span><strong>Local only</strong></div>
+        </div>
+      </section>
+
+      <section class="panel" id="tablePanel">
+        <div class="page-head compact">
+          <div>
+            <h2>Horses</h2>
+            <p class="muted">Use the separate pages to view, edit, or rank mates for a horse from the loaded CSV.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Sex</th><th>Race</th><th>Color</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="horseTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

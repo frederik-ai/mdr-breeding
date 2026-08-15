@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Horses</h1>
+      <p class="muted">Upload a CSV to start a private session, then download the updated file when you are done.</p>
+    </div>
+    <a class="button" href="/export">Download CSV</a>
+  </div>
+
+  <section class="panel">
+    <h3>Import CSV</h3>
+    <p class="muted">Use the same horses.csv format to load an existing set of horses.</p>
+    <form method="post" action="/import" enctype="multipart/form-data" class="import-form">
+      <input type="file" name="csv_file" accept=".csv,text/csv" required>
+      <button type="submit">Upload CSV</button>
+    </form>
+  </section>
+
+  {% if horses %}
+    <table>
+      <tr><th>Name</th><th>Sex</th><th>Race</th><th>Color</th><th>Actions</th></tr>
+      {% for h in horses %}
+        <tr>
+          <td>{{ h.name }}</td>
+          <td>{{ h.sex }}</td>
+          <td>{{ h.race }}</td>
+          <td>{{ h.color }}</td>
+          <td>
+            <a href="/view/{{ h.name }}">View</a> |
+            <a href="/edit/{{ h.name }}">Edit</a> |
+            <a href="/bestmates/{{ h.name }}">Best mates</a> |
+            <a href="/delete/{{ h.name }}" onclick="return confirm('Delete {{h.name}}?')">Delete</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No horses loaded yet. Upload a CSV or <a href="/add">add one manually</a>.</p>
+  {% endif %}
+
+{% endblock %}

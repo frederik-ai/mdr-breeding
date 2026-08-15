@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="form-shell">
+    <div class="page-head compact">
+      <div>
+        <h1>{{ title }}</h1>
+        <p class="muted">Use the dropdown for sex and the disease toggles below.</p>
+      </div>
+    </div>
+
+    <form method="post" action="{{ action_url }}" class="horse-form">
+      <div class="grid-2">
+        <label>
+          Name
+          <input name="name" required value="{{ horse.name if horse else '' }}" placeholder="Horse name">
+        </label>
+
+        <div class="sex-picker">
+          <span class="field-label">Sex</span>
+          <div class="toggle-group" role="radiogroup" aria-label="Sex">
+            {% for sex in sex_options %}
+              <label class="toggle-option {% if horse and horse.sex == sex %}active{% endif %}">
+                <input type="radio" name="sex" value="{{ sex }}" {% if horse and horse.sex == sex %}checked{% endif %} required>
+                <span>{{ sex }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <label>
+          Race
+          <input name="race" value="{{ horse.race if horse else '' }}" placeholder="Race">
+        </label>
+
+        <label>
+          Color
+          <input name="color" value="{{ horse.color if horse else '/' }}" placeholder="/ means ignored">
+        </label>
+      </div>
+
+      <section class="panel">
+        <h3>Diseases</h3>
+        <p class="muted">Toggle all diseases the horse has.</p>
+        <div class="disease-grid">
+          {% for disease in diseases %}
+            <label class="toggle-pill {% if horse and horse.diseases.get(disease) %}active{% endif %}">
+              <input type="checkbox" name="disease_{{ disease }}" {% if horse and horse.diseases.get(disease) %}checked{% endif %}>
+              <span>{{ disease }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Exterieur</h3>
+        <p class="muted">Paste one line per body part as <strong>BodyPart[TAB]GeneCode</strong>.</p>
+        <textarea name="exterieur" rows="16" placeholder="Kopf\tHh Hh hh Hh | hh hH hh Hh">{{ exterieur_text }}</textarea>
+      </section>
+
+      <section class="panel">
+        <h3>Interieur</h3>
+        <p class="muted">Paste one line per category as <strong>Category[TAB]Value</strong>.</p>
+        <textarea name="interieur" rows="12" placeholder="Temperament\tIn Ordnung">{{ interieur_text }}</textarea>
+      </section>
+
+      <div class="form-actions">
+        <button type="submit">{{ submit_label }}</button>
+        <a class="button secondary" href="/">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,7 @@
+horses.csv
+
+.old/
+build/
+dist/
+__pycache__/
+.venv/

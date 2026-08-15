@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-page="view">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>View Horse - MDR Breeding</title>
+    <link rel="stylesheet" href="static/style.css" />
+    <script type="module" src="static/webapp.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand-row">
+          <h1 class="brand">MDR Breeding</h1>
+          <nav class="main-nav">
+            <a href="index.html">Home</a>
+            <a href="add.html">Add Horse</a>
+            <a href="view.html">View Horse</a>
+            <a href="bestmates.html">Best Mates</a>
+          </nav>
+        </div>
+        <div class="header-actions">
+          <a class="button secondary" href="index.html">Back to home</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container page-stack">
+      <div id="flash" class="flash hidden"></div>
+
+      <section class="panel">
+        <div class="page-head compact">
+          <div>
+            <h1>Horse details</h1>
+            <p class="muted">Select a horse to inspect its diseases, exterieur, and interieur values.</p>
+          </div>
+          <div class="page-actions">
+            <select id="horseSelect"></select>
+          </div>
+        </div>
+        <div id="detailContent" class="detail-empty muted">No horse selected.</div>
+      </section>
+    </main>
+  </body>
+</html>

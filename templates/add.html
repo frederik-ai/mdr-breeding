@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Add Horse</h1>
+  <form method="post">
+    <label>Name: <input name="name" required></label><br>
+    <label>Sex: <input name="sex" required placeholder="Stallion/Mare"></label><br>
+    <label>Race: <input name="race"></label><br>
+    <label>Color: <input name="color" placeholder="/ means ignored"></label><br>
+
+    <h3>Diseases</h3>
+    <textarea name="diseases" placeholder="CA, HERDA"></textarea>
+
+    <h3>Exterieur (tab-separated lines: BodyPart\tGeneCode)</h3>
+    <textarea name="exterieur" placeholder="Kopf\tHh Hh hh Hh | hh hH hh Hh\nGebiss\thh hh hH Hh | hh hh hh hh"></textarea>
+
+    <h3>Interieur (tab-separated lines: Category\tValue)</h3>
+    <textarea name="interieur" placeholder="Temperament\tIn Ordnung\nGelehrigkeit\tIn Ordnung"></textarea>
+
+    <p><button type="submit">Add</button></p>
+  </form>
+
+{% endblock %}

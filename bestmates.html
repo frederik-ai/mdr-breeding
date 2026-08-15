@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-page="bestmates">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Best Mates - MDR Breeding</title>
+    <link rel="stylesheet" href="static/style.css" />
+    <script type="module" src="static/webapp.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand-row">
+          <h1 class="brand">MDR Breeding</h1>
+          <nav class="main-nav">
+            <a href="index.html">Home</a>
+            <a href="add.html">Add Horse</a>
+            <a href="view.html">View Horse</a>
+            <a href="bestmates.html">Best Mates</a>
+          </nav>
+        </div>
+        <div class="header-actions">
+          <a class="button secondary" href="index.html">Back to home</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container page-stack">
+      <div id="flash" class="flash hidden"></div>
+
+      <section class="panel">
+        <div class="page-head compact">
+          <div>
+            <h1>Best mates</h1>
+            <p class="muted">Rank possible partners for the selected horse using the current breeding logic.</p>
+          </div>
+          <div class="page-actions">
+            <select id="bestMateSelect"></select>
+          </div>
+        </div>
+
+        <div id="bestMateStats" class="muted"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Best Possible Exterieur Outcome</th><th>Worst Possible Exterieur Outcome</th><th>Note</th></tr>
+            </thead>
+            <tbody id="bestMateBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

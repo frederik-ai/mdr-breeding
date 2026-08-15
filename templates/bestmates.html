@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Best mates for {{ subject.name }}</h1>
+
+  <p>
+    Total other horses: <strong>{{ stats.total_others }}</strong> —
+    excluded by sex: <strong>{{ stats.excluded_sex }}</strong>,
+    excluded by race: <strong>{{ stats.excluded_race }}</strong>,
+    excluded by shared disease: <strong>{{ stats.excluded_disease }}</strong>.
+    Valid candidates: <strong>{{ stats.remaining_valid }}</strong>.
+  </p>
+
+  {% if partners %}
+    <table>
+      <tr><th>Name</th><th>Best Possible Exterieur Outcome</th><th>Worst Possible Exterieur Outcome</th><th>Note</th></tr>
+      {% for p in partners %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ '%.2f'|format(p.best_avg) }}</td>
+          <td>{{ '%.2f'|format(p.worst_avg) }}</td>
+          <td>{{ p.color_note }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No partners found.</p>
+  {% endif %}
+
+{% endblock %}

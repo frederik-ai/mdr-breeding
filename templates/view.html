@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>{{ horse.name }}</h1>
+      <p class="muted"><strong>Sex:</strong> {{ horse.sex }} | <strong>Race:</strong> {{ horse.race }} | <strong>Color:</strong> {{ horse.color }}</p>
+    </div>
+    <div class="page-actions">
+      <a class="button secondary" href="/edit/{{ horse.name }}">Edit</a>
+      <a class="button secondary" href="/bestmates/{{ horse.name }}">Best mates</a>
+    </div>
+  </div>
+
+  <h3>Diseases</h3>
+  <p>{{ horse.get_diseases() | join(', ') }}</p>
+
+  <h3>Exterieur</h3>
+  <table>
+    <tr><th>Part</th><th>Genes</th></tr>
+    {% for p in horse.exterieur.keys() %}
+      <tr><td>{{ p }}</td><td>{{ horse.exterieur[p] }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h3>Interieur</h3>
+  <table>
+    <tr><th>Category</th><th>Value</th></tr>
+    {% for k in horse.interieur.keys() %}
+      <tr><td>{{ k }}</td><td>{{ horse.interieur[k] }}</td></tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}

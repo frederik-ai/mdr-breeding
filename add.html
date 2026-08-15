@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" data-page="add">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add Horse - MDR Breeding</title>
+    <link rel="stylesheet" href="static/style.css" />
+    <script type="module" src="static/webapp.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand-row">
+          <h1 class="brand">MDR Breeding</h1>
+          <nav class="main-nav">
+            <a href="index.html">Home</a>
+            <a href="add.html">Add Horse</a>
+            <a href="view.html">View Horse</a>
+            <a href="bestmates.html">Best Mates</a>
+          </nav>
+        </div>
+        <div class="header-actions">
+          <a class="button secondary" href="index.html">Back to home</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container page-stack">
+      <div id="flash" class="flash hidden"></div>
+
+      <section class="panel form-shell">
+        <div class="page-head compact">
+          <div>
+            <h1 id="formTitle">Add Horse</h1>
+            <p class="muted">Create a new horse or edit an existing one from the CSV session.</p>
+          </div>
+        </div>
+
+        <form id="horseForm" class="horse-form">
+          <div class="grid-2">
+            <label>
+              Name
+              <input id="nameInput" name="name" required placeholder="Horse name">
+            </label>
+
+            <div class="sex-picker">
+              <span class="field-label">Sex</span>
+              <div class="toggle-group" role="radiogroup" aria-label="Sex">
+                <label class="toggle-option">
+                  <input type="radio" name="sex" value="Stallion" required>
+                  <span>Stallion</span>
+                </label>
+                <label class="toggle-option">
+                  <input type="radio" name="sex" value="Mare" required>
+                  <span>Mare</span>
+                </label>
+              </div>
+            </div>
+
+            <label>
+              Race
+              <input id="raceInput" name="race" placeholder="Race">
+            </label>
+
+            <label>
+              Color
+              <input id="colorInput" name="color" placeholder="/ means ignored" value="/">
+            </label>
+          </div>
+
+          <section class="panel nested-panel">
+            <h3>Diseases</h3>
+            <div id="diseaseGrid" class="disease-grid"></div>
+          </section>
+
+          <section class="panel nested-panel">
+            <h3>Exterieur</h3>
+            <p class="muted">Paste one line per body part as BodyPart[TAB]GeneCode.</p>
+            <textarea id="exterieurInput" rows="16" placeholder="Kopf\tHh Hh hh Hh | hh hH hh Hh"></textarea>
+          </section>
+
+          <section class="panel nested-panel">
+            <h3>Interieur</h3>
+            <p class="muted">Paste one line per category as Category[TAB]Value.</p>
+            <textarea id="interieurInput" rows="12" placeholder="Temperament\tIn Ordnung"></textarea>
+          </section>
+
+          <div class="form-actions">
+            <button type="submit" id="saveButton">Add horse</button>
+            <button type="button" id="cancelEditButton" class="button secondary hidden">Cancel edit</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>
