@@ -146,7 +146,7 @@ function parseCsv(text) {
 }
 
 function toCsv(horses) {
-  const headers = ["name", "sex", "race", "color", "diseases", "exterieur", "interieur", "tournament_ratings"];
+  const headers = ["name", "sex", "race", "color", "diseases", "exterieur", "interieur", "tournament_ratings", "paired_horses"];
   const rows = [headers.join(",")];
   for (const horse of horses) {
     rows.push(headers.map((header) => escapeCsv(horse[header] ?? "")).join(","));
@@ -348,6 +348,7 @@ function createEmptyHorse() {
     exterieur,
     interieur,
     tournament_ratings: {},
+    paired_horses: [],
   };
 }
 
@@ -378,6 +379,7 @@ function importFromCsvText(csvText) {
       exterieur: parseJsonField(record.exterieur, {}),
       interieur: parseJsonField(record.interieur, {}),
       tournament_ratings: parseJsonField(record.tournament_ratings, {}),
+      paired_horses: parseJsonField(record.paired_horses, []),
     };
 
     for (const disease of DISEASES) {
@@ -413,6 +415,7 @@ function exportCsvText() {
     exterieur: JSON.stringify(horse.exterieur),
     interieur: JSON.stringify(horse.interieur),
     tournament_ratings: JSON.stringify(horse.tournament_ratings ?? {}),
+    paired_horses: JSON.stringify(horse.paired_horses ?? []),
   })));
 }
 
@@ -596,6 +599,7 @@ function buildBestMateData(subject) {
       best_avg: bestAvg,
       worst_avg: worstAvg,
       color_note: colorNote,
+      paired: isPairRecorded(subject, horse),
     };
   }).sort((left, right) => left.best_avg - right.best_avg || left.worst_avg - right.worst_avg);
 
@@ -609,6 +613,27 @@ function buildBestMateData(subject) {
     },
     partners,
   };
+}
+
+function isPairRecorded(firstHorse, secondHorse) {
+  return (firstHorse.paired_horses ?? []).includes(secondHorse.name)
+    || (secondHorse.paired_horses ?? []).includes(firstHorse.name);
+}
+
+function setPairRecorded(firstHorse, secondHorse, paired) {
+  const updatePairList = (horse, otherName) => {
+    const names = new Set(horse.paired_horses ?? []);
+    if (paired) {
+      names.add(otherName);
+    } else {
+      names.delete(otherName);
+    }
+    horse.paired_horses = [...names].sort((left, right) => left.localeCompare(right, undefined, { sensitivity: "base" }));
+  };
+
+  updatePairList(firstHorse, secondHorse.name);
+  updatePairList(secondHorse, firstHorse.name);
+  saveStoredHorses();
 }
 
 function renderHorseTable() {
@@ -713,7 +738,7 @@ function renderBestMates(name = state.selectedName) {
       elements.bestMateStats.textContent = "Select a horse to view mate ranking.";
     }
     if (elements.bestMateBody) {
-      elements.bestMateBody.innerHTML = `<tr><td colspan="4" class="muted">No horse selected.</td></tr>`;
+      elements.bestMateBody.innerHTML = `<tr><td colspan="5" class="muted">No horse selected.</td></tr>`;
     }
     if (elements.bestMateSelect) {
       elements.bestMateSelect.innerHTML = `<option value="">No horses loaded</option>`;
@@ -734,10 +759,11 @@ function renderBestMates(name = state.selectedName) {
         <td>${partner.name}</td>
         <td>${partner.best_avg.toFixed(2)}</td>
         <td>${partner.worst_avg.toFixed(2)}</td>
+        <td><input type="checkbox" data-action="toggle-pair" data-name="${partner.name}" ${partner.paired ? "checked" : ""} aria-label="Mark ${partner.name} as already mated"></td>
         <td>${partner.color_note}</td>
       </tr>
     `).join("")
-    : `<tr><td colspan="4" class="muted">No partners found.</td></tr>`;
+    : `<tr><td colspan="5" class="muted">No partners found.</td></tr>`;
   }
   if (elements.mateCount) {
     elements.mateCount.textContent = String(stats.remaining_valid);
@@ -859,6 +885,17 @@ function setupBestMatesEventHandlers() {
   elements.bestMateSelect?.addEventListener("change", (event) => {
     state.selectedName = event.target.value || null;
     renderBestMates();
+  });
+  elements.bestMateBody?.addEventListener("change", (event) => {
+    if (event.target.dataset.action !== "toggle-pair") {
+      return;
+    }
+    const subject = horseByName(state.selectedName);
+    const partner = horseByName(event.target.dataset.name);
+    if (subject && partner) {
+      setPairRecorded(subject, partner, event.target.checked);
+      renderBestMates();
+    }
   });
   const applyBestMateFilter = () => {
     const visibleHorses = filteredBestMateHorses();

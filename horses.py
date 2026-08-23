@@ -34,7 +34,8 @@ class Horse:
         diseases: Dict[str, bool],
         exterieur: Dict[str, str],
         interieur: Dict[str, str],
-        tournament_ratings: Dict[str, float] = None
+        tournament_ratings: Dict[str, float] = None,
+        paired_horses: List[str] = None
     ):
         self.name = name
         self.sex = sex
@@ -44,6 +45,7 @@ class Horse:
         self.exterieur = exterieur
         self.interieur = interieur
         self.tournament_ratings = tournament_ratings or {}
+        self.paired_horses = paired_horses or []
         
         self._validate_data()
     
@@ -78,7 +80,8 @@ class Horse:
             "diseases": json.dumps(self.diseases),
             "exterieur": json.dumps(self.exterieur),
             "interieur": json.dumps(self.interieur),
-            "tournament_ratings": json.dumps(self.tournament_ratings)
+            "tournament_ratings": json.dumps(self.tournament_ratings),
+            "paired_horses": json.dumps(self.paired_horses)
         }
     
     @classmethod
@@ -92,7 +95,8 @@ class Horse:
             diseases=json.loads(data["diseases"]),
             exterieur=json.loads(data["exterieur"]),
             interieur=json.loads(data["interieur"]),
-            tournament_ratings=json.loads(data.get("tournament_ratings", "{}"))
+            tournament_ratings=json.loads(data.get("tournament_ratings", "{}")),
+            paired_horses=json.loads(data.get("paired_horses", "[]"))
         )
     
     def __repr__(self) -> str:
@@ -130,7 +134,7 @@ def _child_genotype_options(parent_a: str, parent_b: str) -> Set[str]:
     if len(gametes_a) != 2 or len(gametes_b) != 2:
         return set()
 
-    options: Set[strStall] = set()
+    options: Set[str] = set()
     for a in gametes_a:
         for b in gametes_b:
             pair = "".join(sorted((a, b), key=lambda ch: (ch.islower(), ch)))
@@ -268,7 +272,7 @@ class HorseDatabase:
         if not data:
             return pd.DataFrame(columns=[
                 "name", "sex", "race", "color", "diseases",
-                "exterieur", "interieur", "tournament_ratings"
+                "exterieur", "interieur", "tournament_ratings", "paired_horses"
             ])
 
         return pd.DataFrame(data)
