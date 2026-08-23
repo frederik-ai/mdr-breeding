@@ -35,7 +35,14 @@
             <p class="muted">Select a horse to inspect its diseases, exterieur, and interieur values.</p>
           </div>
           <div class="page-actions">
-            <select id="horseSelect"></select>
+            <label class="filter-field">
+              <span>Search horses</span>
+              <input id="horseSearch" type="search" placeholder="Type a horse name" aria-label="Search horses">
+            </label>
+            <label class="filter-field">
+              <span>Horse</span>
+              <select id="horseSelect" aria-label="Select horse"></select>
+            </label>
           </div>
         </div>
         <div id="detailContent" class="detail-empty muted">No horse selected.</div>

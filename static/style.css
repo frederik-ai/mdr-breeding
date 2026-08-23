@@ -91,7 +91,7 @@ tr:hover td{background:#fbfeff}
 
 form label{display:block;margin:0;font-weight:700;color:#173b42}
 .field-label{display:block;margin:0;font-weight:700;color:#173b42}
-input[type=text], input[type=number], input[type=email], select, textarea{
+input[type=text], input[type=search], input[type=number], input[type=email], select, textarea{
   width:100%;
   padding:10px 12px;
   margin-top:7px;
@@ -102,7 +102,7 @@ input[type=text], input[type=number], input[type=email], select, textarea{
   outline:none;
   transition:border-color 140ms ease, box-shadow 140ms ease;
 }
-input[type=text]:focus, input[type=number]:focus, input[type=email]:focus, select:focus, textarea:focus{
+input[type=text]:focus, input[type=search]:focus, input[type=number]:focus, input[type=email]:focus, select:focus, textarea:focus{
   border-color:#9fd7dd;
   box-shadow:0 0 0 4px rgba(47,143,157,0.12);
 }

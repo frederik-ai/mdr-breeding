@@ -28,6 +28,7 @@ const elements = {
   downloadButton: document.getElementById("downloadButton"),
   resetButton: document.getElementById("resetButton"),
   horseSelect: document.getElementById("horseSelect"),
+  horseSearch: document.getElementById("horseSearch"),
   summaryText: document.getElementById("summaryText"),
   horseCount: document.getElementById("horseCount"),
   mateCount: document.getElementById("mateCount"),
@@ -45,6 +46,7 @@ const elements = {
   horseTableBody: document.getElementById("horseTableBody"),
   detailContent: document.getElementById("detailContent"),
   bestMateSelect: document.getElementById("bestMateSelect"),
+  bestMateSearch: document.getElementById("bestMateSearch"),
   bestMateRaceFilter: document.getElementById("bestMateRaceFilter"),
   bestMateSexFilter: document.getElementById("bestMateSexFilter"),
   bestMateStats: document.getElementById("bestMateStats"),
@@ -655,19 +657,22 @@ function renderHorseTable() {
   `).join("") || `<tr><td colspan="5" class="muted">No horses loaded yet.</td></tr>`;
 }
 
-function renderHorseSelect(selectElement, selectedName) {
-  renderHorseSelectFrom(selectElement, state.horses, selectedName);
+function renderHorseSelect(selectElement, selectedName, searchTerm = "") {
+  renderHorseSelectFrom(selectElement, state.horses, selectedName, searchTerm);
 }
 
-function renderHorseSelectFrom(selectElement, horses, selectedName) {
+function renderHorseSelectFrom(selectElement, horses, selectedName, searchTerm = "") {
   if (!selectElement) {
     return;
   }
 
-  const sortedHorses = [...horses].sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const sortedHorses = [...horses]
+    .filter((horse) => !normalizedSearch || horse.name.toLowerCase().includes(normalizedSearch))
+    .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
   selectElement.innerHTML = sortedHorses.length
     ? sortedHorses.map((horse) => `<option value="${horse.name}" ${horse.name === selectedName ? "selected" : ""}>${horse.name}</option>`).join("")
-    : `<option value="">No horses loaded</option>`;
+    : `<option value="">No matching horses</option>`;
 }
 
 function filterValues() {
@@ -684,6 +689,11 @@ function filteredBestMateHorses() {
     const sexMatches = !sex || horse.sex.trim().toLowerCase() === sex.toLowerCase();
     return raceMatches && sexMatches;
   });
+}
+
+function filteredBestMateSelections() {
+  const search = elements.bestMateSearch?.value.trim().toLowerCase() || "";
+  return filteredBestMateHorses().filter((horse) => !search || horse.name.toLowerCase().includes(search));
 }
 
 function renderBestMateFilters() {
@@ -768,7 +778,7 @@ function renderBestMates(name = state.selectedName) {
   if (elements.mateCount) {
     elements.mateCount.textContent = String(stats.remaining_valid);
   }
-  renderHorseSelectFrom(elements.bestMateSelect, filteredBestMateHorses(), subject.name);
+  renderHorseSelectFrom(elements.bestMateSelect, filteredBestMateHorses(), subject.name, elements.bestMateSearch?.value || "");
 }
 
 function syncSummary() {
@@ -879,11 +889,24 @@ function setupViewEventHandlers() {
     state.selectedName = event.target.value || null;
     renderDetails();
   });
+  elements.horseSearch?.addEventListener("input", (event) => {
+    const search = event.target.value.trim().toLowerCase();
+    const matchingHorses = state.horses
+      .filter((horse) => horse.name.toLowerCase().includes(search))
+      .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
+    state.selectedName = matchingHorses[0]?.name ?? null;
+    renderViewPage();
+  });
 }
 
 function setupBestMatesEventHandlers() {
   elements.bestMateSelect?.addEventListener("change", (event) => {
     state.selectedName = event.target.value || null;
+    renderBestMates();
+  });
+  elements.bestMateSearch?.addEventListener("input", (event) => {
+    const visibleHorses = filteredBestMateSelections();
+    state.selectedName = visibleHorses[0]?.name ?? null;
     renderBestMates();
   });
   elements.bestMateBody?.addEventListener("change", (event) => {
@@ -898,7 +921,7 @@ function setupBestMatesEventHandlers() {
     }
   });
   const applyBestMateFilter = () => {
-    const visibleHorses = filteredBestMateHorses();
+    const visibleHorses = filteredBestMateSelections();
     if (!visibleHorses.some((horse) => horse.name === state.selectedName)) {
       state.selectedName = visibleHorses[0]?.name ?? null;
     }
@@ -925,7 +948,7 @@ function renderAddPage() {
 function renderViewPage() {
   const selected = state.selectedName || state.horses[0]?.name || null;
   state.selectedName = selected;
-  renderHorseSelect(elements.horseSelect, selected);
+  renderHorseSelect(elements.horseSelect, selected, elements.horseSearch?.value || "");
   renderDetails(selected);
 }
 
@@ -933,11 +956,11 @@ function renderBestMatesPage() {
   const selected = state.selectedName || state.horses[0]?.name || null;
   state.selectedName = selected;
   renderBestMateFilters();
-  const visibleHorses = filteredBestMateHorses();
+  const visibleHorses = filteredBestMateSelections();
   if (!visibleHorses.some((horse) => horse.name === state.selectedName)) {
     state.selectedName = visibleHorses[0]?.name ?? null;
   }
-  renderHorseSelectFrom(elements.bestMateSelect, visibleHorses, state.selectedName);
+  renderHorseSelectFrom(elements.bestMateSelect, visibleHorses, state.selectedName, elements.bestMateSearch?.value || "");
   renderBestMates(state.selectedName);
 }
 
