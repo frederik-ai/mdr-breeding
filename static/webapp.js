@@ -231,11 +231,33 @@ function normalizePair(token) {
 }
 
 function countToNote(count) {
-  if (count >= 8) return 1;
-  if (count >= 6) return 2;
-  if (count >= 4) return 3;
-  if (count >= 2) return 4;
+  if (count >= 4) return 1;
+  if (count === 3) return 2;
+  if (count === 2) return 3;
+  if (count === 1) return 4;
   return 5;
+}
+
+function childGenotypeOptions(parentA, parentB) {
+  const gametesA = [...parentA].filter((char) => char === "H" || char === "h");
+  const gametesB = [...parentB].filter((char) => char === "H" || char === "h");
+  if (gametesA.length !== 2 || gametesB.length !== 2) {
+    return new Set();
+  }
+
+  const options = new Set();
+  for (const a of gametesA) {
+    for (const b of gametesB) {
+      const pair = [a, b].sort((left, right) => {
+        if ((left === left.toLowerCase()) !== (right === right.toLowerCase())) {
+          return left === left.toLowerCase() ? 1 : -1;
+        }
+        return left.localeCompare(right);
+      }).join("");
+      options.add(normalizePair(pair));
+    }
+  }
+  return options;
 }
 
 function compareExterieur(parent1, parent2) {
@@ -257,29 +279,46 @@ function compareExterieur(parent1, parent2) {
         throw new Error("bad gene code");
       }
 
-      let bestCount = 0;
-      let worstCount = 0;
+      let bestFront = 0;
+      let bestBack = 0;
+      let worstFront = 0;
+      let worstBack = 0;
       for (let index = 0; index < 8; index += 1) {
-        const alleles1 = new Set(tokens1[index]);
-        const alleles2 = new Set(tokens2[index]);
+        const childOptions = childGenotypeOptions(tokens1[index], tokens2[index]);
+        if (childOptions.size === 0) {
+          continue;
+        }
+
         if (index < 4) {
-          const bestPossible = alleles1.has("H") || alleles2.has("H");
-          const guaranteed = (alleles1.size === 1 && alleles1.has("H")) || (alleles2.size === 1 && alleles2.has("H"));
-          if (bestPossible) bestCount += 1;
-          if (guaranteed) worstCount += 1;
+          const matchBest = [...childOptions].some((genotype) => genotype.includes("H"));
+          const matchWorst = [...childOptions].every((genotype) => genotype.includes("H"));
+          if (matchBest) bestFront += 1;
+          if (matchWorst) worstFront += 1;
         } else {
-          const bestPossible = alleles1.has("h") && alleles2.has("h");
-          const guaranteed = (alleles1.size === 1 && alleles1.has("h")) && (alleles2.size === 1 && alleles2.has("h"));
-          if (bestPossible) bestCount += 1;
-          if (guaranteed) worstCount += 1;
+          const matchBest = childOptions.has("hh");
+          const matchWorst = childOptions.size === 1 && childOptions.has("hh");
+          if (matchBest) bestBack += 1;
+          if (matchWorst) worstBack += 1;
         }
       }
+
+      const bestCount = Math.min(bestFront, bestBack);
+      const worstCount = Math.min(worstFront, worstBack);
 
       const bestNote = countToNote(bestCount);
       const worstNote = countToNote(worstCount);
       bestNotes.push(bestNote);
       worstNotes.push(worstNote);
-      details[part] = { best_count: bestCount, worst_count: worstCount, best_note: bestNote, worst_note: worstNote };
+      details[part] = {
+        best_front: bestFront,
+        best_back: bestBack,
+        worst_front: worstFront,
+        worst_back: worstBack,
+        best_count: bestCount,
+        worst_count: worstCount,
+        best_note: bestNote,
+        worst_note: worstNote,
+      };
     } catch {
       bestNotes.push(5);
       worstNotes.push(5);

@@ -110,23 +110,44 @@ def _normalize_pair(token: str) -> str:
 
 
 def _count_to_note(count: int) -> int:
-    # Map number of matching loci (0-8) to note 1..5 (1 best)
-    if count >= 8:
+    # Map number of matching loci in the decisive 4-locus group (0-4) to note 1..5 (1 best)
+    if count >= 4:
         return 1
-    if 6 <= count <= 7:
+    if count == 3:
         return 2
-    if 4 <= count <= 5:
+    if count == 2:
         return 3
-    if 2 <= count <= 3:
+    if count == 1:
         return 4
     return 5
 
 
+def _child_genotype_options(parent_a: str, parent_b: str) -> Set[str]:
+    """Return all possible normalized child genotypes for one locus."""
+    gametes_a = [c for c in parent_a if c in {"H", "h"}]
+    gametes_b = [c for c in parent_b if c in {"H", "h"}]
+
+    if len(gametes_a) != 2 or len(gametes_b) != 2:
+        return set()
+
+    options: Set[str] = set()
+    for a in gametes_a:
+        for b in gametes_b:
+            pair = "".join(sorted((a, b), key=lambda ch: (ch.islower(), ch)))
+            options.add(_normalize_pair(pair))
+    return options
+
+
 def compare_exterieur(parent1: Dict[str, str], parent2: Dict[str, str]):
-    """Compare two exterieur dicts and return overall best and worst possible average notes.
+    """Compare two exterieur dicts and return strict-rule best and worst possible average notes.
 
     Returns (best_avg_note, worst_avg_note, details)
-    where details is a dict per body part with best_count/worst_count and notes.
+    where details is a dict per body part with group counts and notes.
+
+    Rule implementation:
+    - Loci 1-4 target dominant phenotype (HH or Hh).
+    - Loci 5-8 target recessive phenotype (hh).
+    - The weaker of the two 4-locus groups determines the body-part score.
     """
     details = {}
     best_notes = []
@@ -157,40 +178,52 @@ def compare_exterieur(parent1: Dict[str, str], parent2: Dict[str, str]):
             details[part] = {"best_count": 0, "worst_count": 0, "best_note": 5, "worst_note": 5}
             continue
 
-        best_count = 0
-        worst_count = 0
+        best_front = 0
+        best_back = 0
+        worst_front = 0
+        worst_back = 0
         for i in range(8):
             tok1 = tokens1[i]
             tok2 = tokens2[i]
-            alleles1 = set(tok1)
-            alleles2 = set(tok2)
+            child_options = _child_genotype_options(tok1, tok2)
+            if not child_options:
+                continue
 
             if i < 4:
-                # desired: presence of H in child (HH or Hh)
-                # best possible: achievable if at least one parent has 'H'
-                best_possible = ('H' in alleles1) or ('H' in alleles2)
-                if best_possible:
-                    best_count += 1
-                # minimal match guaranteed only if either parent is HH
-                guaranteed = (alleles1 == {'H'}) or (alleles2 == {'H'})
-                if guaranteed:
-                    worst_count += 1
+                # target is dominant phenotype: HH or Hh
+                match_best = any("H" in g for g in child_options)
+                match_worst = all("H" in g for g in child_options)
+                if match_best:
+                    best_front += 1
+                if match_worst:
+                    worst_front += 1
             else:
-                # desired: child hh (both alleles h)
-                # best possible: achievable if both parents have 'h' allele available
-                best_possible = ('h' in alleles1) and ('h' in alleles2)
-                guaranteed = (alleles1 == {'h'}) and (alleles2 == {'h'})
-                if best_possible:
-                    best_count += 1
-                if guaranteed:
-                    worst_count += 1
+                # target is recessive phenotype: hh
+                match_best = "hh" in child_options
+                match_worst = child_options == {"hh"}
+                if match_best:
+                    best_back += 1
+                if match_worst:
+                    worst_back += 1
+
+        best_count = min(best_front, best_back)
+        worst_count = min(worst_front, worst_back)
 
         best_note = _count_to_note(best_count)
         worst_note = _count_to_note(worst_count)
 
         best_notes.append(best_note)
         worst_notes.append(worst_note)
-        details[part] = {"best_count": best_count, "worst_count": worst_count, "best_note": best_note, "worst_note": worst_note}
+        details[part] = {
+            "best_front": best_front,
+            "best_back": best_back,
+            "worst_front": worst_front,
+            "worst_back": worst_back,
+            "best_count": best_count,
+            "worst_count": worst_count,
+            "best_note": best_note,
+            "worst_note": worst_note,
+        }
 
     # average across body parts
     from statistics import mean
@@ -298,31 +331,12 @@ class HorseDatabase:
     def __repr__(self) -> str:
         return f"HorseDatabase(horses={len(self.horses)})"
 
-    def _interieur_score(self, value: str) -> float:
-        if not isinstance(value, str):
-            try:
-                return float(value)
-            except Exception:
-                return 0.0
-
-        v = value.strip().lower()
-        mapping = {
-            "exzellent": 5.0,
-            "gut": 4.0,
-            "in ordnung": 3.0,
-            "inordnung": 3.0,
-            "passabel": 3.0,
-            "schlecht": 2.0,
-            "miserabel": 1.0
-        }
-        return mapping.get(v, 0.0)
-
     def get_best_mates(self, horse_name: str, top_n: int | None = 3):
         """Return a sorted list of mating partners for horse_name.
 
         If `top_n` is None, return all possible partners in matching order.
 
-        Each entry is a dict: {name, best_avg, worst_avg, interieur_avg, color_note}
+        Each entry is a dict: {name, best_avg, worst_avg, color_note}
         Sorted by best_avg asc, then worst_avg asc (better worst-case).
         """
         if horse_name not in self.horses:
@@ -347,11 +361,6 @@ class HorseDatabase:
 
             best_avg, worst_avg, _ = compare_exterieur(subject.exterieur, other.exterieur)
 
-            # interieur average (not used for ranking)
-            scores = [ self._interieur_score(v) for v in (subject.interieur.values() if subject.interieur else []) ]
-            scores += [ self._interieur_score(v) for v in (other.interieur.values() if other.interieur else []) ]
-            interieur_avg = (sum(scores) / len(scores)) if scores else 0.0
-
             color_note = ""
             if subject.color != "/" and other.color != "/" and subject.color.strip().lower() == other.color.strip().lower():
                 color_note = f"(both horses are {subject.color})"
@@ -360,7 +369,6 @@ class HorseDatabase:
                 "name": other.name,
                 "best_avg": best_avg,
                 "worst_avg": worst_avg,
-                "interieur_avg": interieur_avg,
                 "color_note": color_note
             })
 
