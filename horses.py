@@ -130,7 +130,7 @@ def _child_genotype_options(parent_a: str, parent_b: str) -> Set[str]:
     if len(gametes_a) != 2 or len(gametes_b) != 2:
         return set()
 
-    options: Set[str] = set()
+    options: Set[strStall] = set()
     for a in gametes_a:
         for b in gametes_b:
             pair = "".join(sorted((a, b), key=lambda ch: (ch.islower(), ch)))

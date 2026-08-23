@@ -124,6 +124,8 @@ textarea{resize:vertical;min-height:160px;line-height:1.45}
 .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
 .page-head.compact{margin-bottom:8px}
 .page-head h1{margin:0 0 6px 0}
+.filter-field{display:block;min-width:150px;color:#173b42;font-weight:700}
+.filter-field span{display:block}
 .page-actions{display:flex;gap:10px;flex-wrap:wrap}
 .muted{color:var(--muted)}
 .import-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}

@@ -45,6 +45,8 @@ const elements = {
   horseTableBody: document.getElementById("horseTableBody"),
   detailContent: document.getElementById("detailContent"),
   bestMateSelect: document.getElementById("bestMateSelect"),
+  bestMateRaceFilter: document.getElementById("bestMateRaceFilter"),
+  bestMateSexFilter: document.getElementById("bestMateSexFilter"),
   bestMateStats: document.getElementById("bestMateStats"),
   bestMateBody: document.getElementById("bestMateBody"),
 };
@@ -629,13 +631,51 @@ function renderHorseTable() {
 }
 
 function renderHorseSelect(selectElement, selectedName) {
+  renderHorseSelectFrom(selectElement, state.horses, selectedName);
+}
+
+function renderHorseSelectFrom(selectElement, horses, selectedName) {
   if (!selectElement) {
     return;
   }
 
-  selectElement.innerHTML = state.horses.length
-    ? state.horses.map((horse) => `<option value="${horse.name}" ${horse.name === selectedName ? "selected" : ""}>${horse.name}</option>`).join("")
+  const sortedHorses = [...horses].sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
+  selectElement.innerHTML = sortedHorses.length
+    ? sortedHorses.map((horse) => `<option value="${horse.name}" ${horse.name === selectedName ? "selected" : ""}>${horse.name}</option>`).join("")
     : `<option value="">No horses loaded</option>`;
+}
+
+function filterValues() {
+  return {
+    race: elements.bestMateRaceFilter?.value || "",
+    sex: elements.bestMateSexFilter?.value || "",
+  };
+}
+
+function filteredBestMateHorses() {
+  const { race, sex } = filterValues();
+  return state.horses.filter((horse) => {
+    const raceMatches = !race || horse.race.trim().toLowerCase() === race.toLowerCase();
+    const sexMatches = !sex || horse.sex.trim().toLowerCase() === sex.toLowerCase();
+    return raceMatches && sexMatches;
+  });
+}
+
+function renderBestMateFilters() {
+  if (!elements.bestMateRaceFilter || !elements.bestMateSexFilter) {
+    return;
+  }
+
+  const current = filterValues();
+  const races = [...new Set(state.horses.map((horse) => horse.race.trim()).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: "base" }));
+  const sexes = [...new Set(state.horses.map((horse) => horse.sex.trim()).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: "base" }));
+
+  elements.bestMateRaceFilter.innerHTML = `<option value="">All races</option>${races.map((race) => `<option value="${race}">${race}</option>`).join("")}`;
+  elements.bestMateSexFilter.innerHTML = `<option value="">All sexes</option>${sexes.map((sex) => `<option value="${sex}">${sex}</option>`).join("")}`;
+  elements.bestMateRaceFilter.value = races.some((race) => race.toLowerCase() === current.race.toLowerCase()) ? current.race : "";
+  elements.bestMateSexFilter.value = sexes.some((sex) => sex.toLowerCase() === current.sex.toLowerCase()) ? current.sex : "";
 }
 
 function renderDetails(name = state.selectedName) {
@@ -702,7 +742,7 @@ function renderBestMates(name = state.selectedName) {
   if (elements.mateCount) {
     elements.mateCount.textContent = String(stats.remaining_valid);
   }
-  renderHorseSelect(elements.bestMateSelect, subject.name);
+  renderHorseSelectFrom(elements.bestMateSelect, filteredBestMateHorses(), subject.name);
 }
 
 function syncSummary() {
@@ -820,6 +860,15 @@ function setupBestMatesEventHandlers() {
     state.selectedName = event.target.value || null;
     renderBestMates();
   });
+  const applyBestMateFilter = () => {
+    const visibleHorses = filteredBestMateHorses();
+    if (!visibleHorses.some((horse) => horse.name === state.selectedName)) {
+      state.selectedName = visibleHorses[0]?.name ?? null;
+    }
+    renderBestMates();
+  };
+  elements.bestMateRaceFilter?.addEventListener("change", applyBestMateFilter);
+  elements.bestMateSexFilter?.addEventListener("change", applyBestMateFilter);
 }
 
 function renderHomePage() {
@@ -846,8 +895,13 @@ function renderViewPage() {
 function renderBestMatesPage() {
   const selected = state.selectedName || state.horses[0]?.name || null;
   state.selectedName = selected;
-  renderHorseSelect(elements.bestMateSelect, selected);
-  renderBestMates(selected);
+  renderBestMateFilters();
+  const visibleHorses = filteredBestMateHorses();
+  if (!visibleHorses.some((horse) => horse.name === state.selectedName)) {
+    state.selectedName = visibleHorses[0]?.name ?? null;
+  }
+  renderHorseSelectFrom(elements.bestMateSelect, visibleHorses, state.selectedName);
+  renderBestMates(state.selectedName);
 }
 
 function initializePage() {
